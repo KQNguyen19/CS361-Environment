@@ -9,8 +9,11 @@ import time
 import tkinter as tk
 from tkinter import ttk
 import ttkbootstrap as ttk
-import json
+import json, requests
 from functools import partial
+from flask import Flask, jsonify, request
+import datetime
+import GetWeather
 
 # Main Window class variables
 # LoginWindow is the primary variable that the user will interface with at the start
@@ -20,6 +23,14 @@ loginWindow.title('Login Drone')
 loginWindow.geometry('1920x1080')
 username = tk.StringVar()
 password = tk.StringVar()
+
+x = 0
+y = 0
+
+description, main = "", ""
+temperature, pressure = 0, 0
+
+zipcode = tk.StringVar()
 
 
 class LoginPage(ttk.Frame):
@@ -91,6 +102,70 @@ class LoginPage(ttk.Frame):
     signup_button.grid(row=4, column=2, pady=2)
 
 
+class DroneUser:
+    def __init__(self, username):
+        self.username = username
+        self.coordinates = tuple(x,y)
+
+    def movement(self):
+        self.username = ' '
+
+
+def weatherWindow():
+
+    # Toplevel object which will be treated as a new window during successful login
+    newWindow = tk.Toplevel(loginWindow)
+
+    # Title of the Toplevel screen
+    newWindow.title("Weather Menu")
+
+    # Sets the dimensions of toplevel screen
+    newWindow.geometry("1280x720")
+
+    # title
+    title_label = ttk.Label(newWindow, text='Weather Screen', font='Times 36 bold')
+    title_label.grid(row=0, column=7, padx=2)
+
+    # Username label and text entry box
+    zipcode_label = ttk.Label(newWindow, text="Enter a US Zipcode", font='Times 14 bold')
+    zipcode_label.grid(row=3, column=7, pady=2)
+    zipcode_entry = ttk.Entry(newWindow, textvariable=zipcode)
+    zipcode_entry.focus_set()
+    zipcode_entry.grid(row=4, column=7, pady=2)
+
+
+    # Method to call on the GetWeather Module to get the weather information of a User given Zipcode
+    def zipcodeUser():
+
+        userZipcode = zipcode.get()
+
+        description, main, temperature, pressure, zipstate = GetWeather.submit(userZipcode)
+
+        # If the Zipcode is a correct value to use, then provide the pertinent results to the User.
+        if zipstate == True:
+
+            weather_description = "Main: " + main + "\nDescription: " + description + "\nCurrent Temperature: " + str(
+                temperature) + " degree Farenheit" + "\nAtmospheric Pressure: " + str(
+                pressure) + " hPa" + "\nTime of Report: " + str(datetime.datetime.now())
+
+            text = ttk.Text(newWindow, height=10, width=50, font='Times 24 bold')
+            text.grid(row=20, column=9, padx=20, pady=40)
+            text.insert(ttk.END, weather_description)
+
+        # If the Zipcode is not a correct input
+        else:
+
+            zipcode_error = "Incorrect Zipcode entered. Please try again."
+            text = ttk.Text(newWindow, height=10, width=50, font='Times 24 bold')
+            text.grid(row=20, column=9, padx=20, pady=40)
+            text.insert(ttk.END, zipcode_error)
+
+    # A Submit button for the user to enter in a Zipcode
+    submit_button = ttk.Button(newWindow, text="Submit", command=zipcodeUser)
+    submit_button.grid(row=4, column=8, pady=2)
+
+
+
 def inventoryWindow():
 
     # Toplevel object which will be treated as a new window during successful login
@@ -146,6 +221,10 @@ def openNewWindow():
     btn = ttk.Button(newWindow, text="Inventory", command=inventoryWindow)
     btn.grid(row=6, column=1, pady=2)
 
+    # A button which will open a new window (Weather Screen) on a click
+    btn = ttk.Button(newWindow, text="Get Weather", command=weatherWindow)
+    btn.grid(row=12, column=1, pady=2)
+
     # Placeholder for functions when there is a complete Main Screen for navigating the Drone.
     def moveup():
         print("UP")
@@ -168,6 +247,14 @@ def openNewWindow():
     btnup.grid(row=102, column=4, padx=2, pady=2)
     btnup = ttk.Button(newWindow, text="RIGHT", command=moveright)
     btnup.grid(row=102, column=6, padx=2, pady=2)
+
+    #b = 0
+    #for r in range(6):
+    #    for c in range(6):
+    #        b = b + 1
+    #        matrix = ttk.Button(newWindow, text=str(b))
+    #        matrix.grid(row=r, column=c)
+
 
 
 loginWindow = LoginPage()
