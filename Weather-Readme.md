@@ -5,3 +5,5 @@ For an Example, in the Drone file, the user enters in a valid 5 digit Zipcode an
 
 The provided results are strings of the "Main Weather", a "Description" of the weather and Integer values for the Temperature and Atmospheric Pressure. If the user gives a faulty Zipcode, 
 the program will fail and prompt for another zipcode to be used.
+
+UML SEQUENCE DIAGRAM: https://online.visual-paradigm.com/w/noeddauz/diagrams/#diagram:workspace=noeddauz&proj=0&id=2&type=SequenceDiagram
