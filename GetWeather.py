@@ -1,42 +1,43 @@
-import json, requests
-import datetime
+import json
+from flask import Flask, request
+import requests
+
+app = Flask(__name__)
 
 country = "us"
 api = "6350ab23b7ea0482f09e788c444d3d62"
 
-def submit(zipcode):
+@app.route('/weather', methods=['GET'])
+def get_weather():
+    zipcode = request.args.get('zipcode')
 
-    #completeUrl = "http://api.openweathermap.org/data/2.5/weather?zip=" + zipcode + "," + country + "&appid=" + api
-    completeUrl = "http://api.openweathermap.org/data/2.5/weather?zip=" + zipcode + ",us&appid=" + api
+    if not zipcode:
+        return json.dumps({"error": "Zipcode is required"}), 400
 
-    # json method of response object
-    response = requests.get(completeUrl)
+    complete_url = f"http://api.openweathermap.org/data/2.5/weather?zip={zipcode},{country}&appid={api}"
+
+    response = requests.get(complete_url)
     data = response.json()
 
-    # If there's no error amongst the data.
     if data["cod"] != "404":
-
-        # Grabs the list from "Main"
         results = data["main"]
-
-        # Grabs the description of the weather from an Associative List
         description = data["weather"][0]['description']
-
-        # Grabs the main category of the weather from an Associative List
         main = data['weather'][0]['main']
-
-        # Temperature is converted from Kelvin to Farenheit while rounding down in half
-        temperature = results["temp"]
-        temperature = temperature * (9 / 5) - 459.67
+        temperature = results["temp"] * (9 / 5) - 459.67
         temperature = round(temperature, 2)
-
-        # Grabbing Atmospheric Pressure value
         pressure = results["pressure"]
 
-        # Returns the description, main, temperature and pressure values while indicating a True flag for a correct Zipcode
-        return description, main, temperature, pressure, True
+        result = {
+            "description": description,
+            "main": main,
+            "temperature": temperature,
+            "pressure": pressure,
+            "success": True
+        }
 
+        return json.dumps(result)
     else:
+        return json.dumps({"error": "Invalid zipcode"}), 404
 
-        # Returns essentially no values but a False flag to indicate an error with the Zipcode
-        return "", "", 0, 0, False
+if __name__ == '__main__':
+    app.run(debug=True)
